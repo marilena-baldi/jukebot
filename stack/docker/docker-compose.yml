@@ -1,0 +1,10 @@
+services:
+  bot:
+    build:
+      context: ../../
+      dockerfile: stack/docker/bot/Dockerfile
+    volumes:
+      - ../../src/bot:/bot
+      - ../data:/bot/data
+    env_file:
+      - ../../.env
