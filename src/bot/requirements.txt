@@ -1,6 +1,5 @@
 kink
 discord.py
-python-dotenv
 PyNaCl
 pytubefix
 pydantic
