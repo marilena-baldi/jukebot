@@ -5,10 +5,11 @@ import functools
 import random
 import logging
 from .song import Song
+from . import di
 
 class Playlist:
     def __init__(self, name=None):
-        self.playlist_path = os.path.join(os.environ.get('DATA_PATH'), name)
+        self.playlist_path = os.path.join(di['data_path'], name)
         self.name = name
         self.songs = []
         self.index = 0
