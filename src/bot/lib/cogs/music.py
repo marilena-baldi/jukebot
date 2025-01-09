@@ -11,7 +11,7 @@ class Music(commands.Cog, name='Music'):
         self.playlist = Playlist(name='default')
         self.do_stop = False
 
-    @commands.command(name='play', help='This command plays music.')
+    @commands.command(name='play', help='Play music.')
     async def play(self, ctx, index=None):
         self.playlist.index = self.playlist.index if index is None else int(index)
         self.do_stop = False
@@ -20,7 +20,7 @@ class Music(commands.Cog, name='Music'):
 
         def after(ctx):
             if not ctx.voice_client.is_playing() and not self.do_stop:
-                self.playlist.get_next()
+                self.playlist.next()
 
                 coro = self.play(ctx)
                 asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
@@ -30,21 +30,21 @@ class Music(commands.Cog, name='Music'):
             after=lambda e: after(ctx)
         )
 
-    @commands.command(name='pause', help='This command pauses the music.')
+    @commands.command(name='pause', help='Pause music.')
     async def pause(self, ctx):
         logging.info('Pausing music.')
 
         if ctx.voice_client.is_playing():
             ctx.voice_client.pause()
 
-    @commands.command(name='resume', help='This command resumes the music.')
+    @commands.command(name='resume', help='Resume music.')
     async def resume(self, ctx):
         logging.info('Resuming music.')
 
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
 
-    @commands.command(name='stop', help='This command stops the music.')
+    @commands.command(name='stop', help='Stop music.')
     async def stop(self, ctx):
         logging.info('Stopping music.')
 
@@ -53,15 +53,23 @@ class Music(commands.Cog, name='Music'):
 
         ctx.voice_client.stop()
 
-    @commands.command(name='show', help='This command shows the current song and the playlist.')
+    @commands.command(name='list', help='Show available playlists.')
+    async def list(self, ctx):
+        logging.info('Showing playlists.')
+
+        playlists = [f"{playlist}" for playlist in self.playlist.list()]
+
+        await ctx.send(f'{"\n".join(playlists)}')
+
+    @commands.command(name='show', help='Show current playlist songs.')
     async def show(self, ctx):
         logging.info('Showing current song and playlist.')
 
-        current_playlist = [f"{i}\t-\t{song.title}" for i, song in enumerate(self.playlist.list())]
+        current_playlist = [f"{i}\t-\t{song.title}" for i, song in enumerate(self.playlist.show())]
 
         await ctx.send(f'Current playlist: {self.playlist.name}\n\n{"\n".join(current_playlist)}')
 
-    @commands.command(name='add', help='This command adds a song to the playlist.')
+    @commands.command(name='add', help='Add a song to the playlist.')
     async def add(self, ctx, song_name):
         song = di['youtube'].get(query=song_name, name=self.playlist.name)
 
@@ -77,13 +85,13 @@ class Music(commands.Cog, name='Music'):
 
         logging.info(f'Removed song {index}. {song.title}.')
 
-    @commands.command(name='clear', help='This command clears the playlist.')
+    @commands.command(name='clear', help='Clear playlist.')
     async def clear(self, ctx):
         self.playlist.clear()
 
         logging.info('Playlist cleared.')
 
-    @commands.command(name='delete', help='This command deletes a song from the playlist.')
+    @commands.command(name='delete', help='Delete a song or a playlist.')
     async def delete(self, ctx, index=None):
         if index:
             index = int(index)
@@ -96,13 +104,13 @@ class Music(commands.Cog, name='Music'):
 
         logging.info(f'Deleted song {index}. {song.title}.')
 
-    @commands.command(name='shuffle', help='This command shuffles the playlist songs.')
+    @commands.command(name='shuffle', help='Shuffle playlist songs.')
     async def shuffle(self, ctx):
         self.playlist.shuffle()
 
         logging.info('Shuffled playlist songs.')
 
-    @commands.command(name='move', help='This command moves a song in the playlist.')
+    @commands.command(name='move', help='Move songs in the playlist.')
     async def move(self, ctx, from_index, to_index):
         from_index = int(from_index)
         to_index = int(to_index)
@@ -111,50 +119,48 @@ class Music(commands.Cog, name='Music'):
 
         logging.info(f'Moving song from index {from_index} to index {to_index}.')
 
-    @commands.command(name='next', help='This command goes to the next song.')
+    @commands.command(name='next', help='Go to the next song.')
     async def next(self, ctx):
         logging.info('Going to the next song.')
 
         self.do_stop = True
-        self.playlist.get_next()
+        self.playlist.next()
 
         ctx.voice_client.stop()
 
         await self.play(ctx)
 
-    @commands.command(name='prev', help='This command goes to the previous song.')
+    @commands.command(name='prev', help='Go to the previous song.')
     async def prev(self, ctx):
         logging.info('Going to the previous song.')
 
         self.do_stop = True
-        self.playlist.get_previous()
+        self.playlist.previous()
 
         ctx.voice_client.stop()
 
         await self.play(ctx)
 
-    @commands.command(name='loop', help='This command loops the song.')
+    @commands.command(name='loop', help='Toggle song loop.')
     async def loop(self, ctx):
-        loop = not self.playlist.loop
+        self.playlist.loop = not self.playlist.loop
 
-        self.playlist.loop = loop
+        logging.info(f'Loop: {self.playlist.loop}.')
 
-        logging.info(f'Loop: {loop}.')
-
-    @commands.command(name='switch', help='This command switches to another playlist.')
+    @commands.command(name='switch', help='Switch playlist.')
     async def switch(self, ctx, playlist_name):
         self.playlist = Playlist(name=playlist_name)
 
         logging.info(f'Switching to playlist {playlist_name}.')
 
-    @commands.command(name='reload', help='This command reloads the playlist.', hidden=True)
+    @commands.command(name='reload', help='Reload playlist.', hidden=True)
     async def reload(self, ctx):
         self.playlist.load()
         self.playlist.fix()
 
         logging.info('Playlist reloaded.')
 
-    @commands.command(name='reset', help='This command resets the playlist.', hidden=True)
+    @commands.command(name='reset', help='Reset playlist.', hidden=True)
     async def reset(self, ctx):
         self.playlist.clear()
         self.playlist.load()

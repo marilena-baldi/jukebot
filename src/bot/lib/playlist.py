@@ -64,13 +64,13 @@ class Playlist:
 
         return self.songs[index]
 
-    def get_next(self, index=None, loop=None):
+    def next(self, index=None, loop=None):
         index = index or self.index
         loop = loop or self.loop
 
         self.index = index if loop else (self.index + 1) % len(self.songs)
 
-    def get_previous(self, index=None, loop=None):
+    def previous(self, index=None, loop=None):
         index = index or self.index
         loop = loop or self.loop
 
@@ -89,8 +89,11 @@ class Playlist:
     def clear(self):
         self.songs.clear()
 
-    def list(self):
+    def show(self):
         return self.songs
+
+    def list(self):
+        return os.listdir(di['data_path'])
 
     @save
     def shuffle(self):
