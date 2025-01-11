@@ -124,7 +124,7 @@ class Music(commands.Cog, name='Music'):
 
         await ctx.send(embed=embed)
 
-    @commands.command(name='remove', help='This command removes a song from the playlist.')
+    @commands.command(name='remove', help='Remove a song from the playlist.')
     async def remove(self, ctx, index):
         logging.info(f'Removing song {index}.')
 
